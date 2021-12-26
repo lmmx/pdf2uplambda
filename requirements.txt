@@ -1,0 +1,3 @@
+boto3
+httpx
+pdf2up
