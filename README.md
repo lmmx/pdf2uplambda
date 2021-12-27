@@ -11,9 +11,7 @@ python lambda_function.py '{"url": "https://arxiv.org/abs/2111.00396"}'
 ```
 ⇣
 ```
-[INFO]- INITIALISED: {'source_url': 'https://arxiv.org/abs/2111.00396', 'box': None, 'all_pages':
-False, 'skip': None, 'arx_id': '2111.00396', 'pdf_url':
-'https://export.arxiv.org/pdf/2111.00396.pdf'}
+[INFO]- INITIALISED: arX⠶2111.00396
 [INFO]- SUCCESSFULLY RETRIEVED URL
 100%|███████████████████████████████████████████████████████████████████████████████████████████|
 4/4 [00:02<00:00,  1.33it/s]
