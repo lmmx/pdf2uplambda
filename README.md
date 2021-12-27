@@ -15,16 +15,17 @@ python lambda_function.py '{"url": "https://arxiv.org/abs/2111.00396"}'
 False, 'skip': None, 'arx_id': '2111.00396', 'pdf_url':
 'https://export.arxiv.org/pdf/2111.00396.pdf'}
 [INFO]- SUCCESSFULLY RETRIEVED URL
-100%|████████████████████████████████████████████████████████████████████████████████████████████|
-4/4 [00:02<00:00,  1.34it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████|
+4/4 [00:02<00:00,  1.33it/s]
 [INFO]- {'source_url': 'https://arxiv.org/abs/2111.00396',
  'box': None,
  'all_pages': False,
  'skip': None,
  'arx_id': '2111.00396',
  'pdf_url': 'https://export.arxiv.org/pdf/2111.00396.pdf',
- 'images': ['2111.00396_0.png',
-            '2111.00396_1.png',
-            '2111.00396_2.png',
-            '2111.00396_3.png']}
+ 'images':
+['https://my-bucket-name.s3.eu-west-1.amazonaws.com/my-dir-name/dev/pdf2up_2111.00396_0.png',
+            'https://my-bucket-name.s3.eu-west-1.amazonaws.com/my-dir-name/dev/pdf2up_2111.00396_1.png',
+            'https://my-bucket-name.s3.eu-west-1.amazonaws.com/my-dir-name/dev/pdf2up_2111.00396_2.png',
+            'https://my-bucket-name.s3.eu-west-1.amazonaws.com/my-dir-name/dev/pdf2up_2111.00396_3.png']}
 ```

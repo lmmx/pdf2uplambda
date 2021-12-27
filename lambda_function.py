@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 from pprint import pformat
@@ -14,6 +15,7 @@ from arxiv_utils import ArxivPaper
 from console_log import logger
 from s3_utils import S3Config, S3Url, S3Urls
 
+S3Config.STAGE = os.environ.get("STAGE", "dev")
 S3Config.TESTING = True
 PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
@@ -35,8 +37,10 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
         # Handle the PDF with pdf2up
         png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
         # Now handle S3 upload here
-        png_out_keys = [png_file.name for png_file in png_out_paths]
-        s3_urls = S3Urls.from_keys(png_out_keys)
+        stage_subpath = ["dev"] if S3Config.STAGE == "dev" else []
+        path_base = Path(S3Config.dir_name, *stage_subpath)
+        png_keys = [f"{path_base / ('pdf2up_' + png.name)}" for png in png_out_paths]
+        s3_urls = S3Urls.from_keys(png_keys)
     output.update({"images": s3_urls})
     if S3Config.TESTING:
         logger.info(pformat(output, sort_dicts=False))
