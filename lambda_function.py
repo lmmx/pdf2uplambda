@@ -1,56 +1,50 @@
 from __future__ import annotations
 
-import argparse
 import json
+from argparse import ArgumentParser
 from pathlib import Path
+from pprint import pformat
+from tempfile import TemporaryDirectory
 from urllib.parse import urlparse
 
-import boto3
-import pdf2up
 import httpx
+from pdf2up.conversion import pdf2png
+
+from arxiv_utils import ArxivPaper
+from console_log import logger
+from s3_utils import S3Config, S3Url, S3Urls
+
+S3Config.TESTING = True
+PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 
-def id_from_arx_url(url: str) -> str:
-    parsed = urlparse(url)
-    subpath = Path(parsed.path)
-    pdf_suff = subpath.suffix == "pdf"
-    arx_id = subpath.stem if pdf_suff else subpath.name
-    return arx_id
-
-
-def arx_url_from_id(arx_id: str) -> str:
-    """
-    Prepare a URL at the proper export subdomain of arxiv.org so that PDF requests don't return a 403 error when pulled by a non-browser viewer.
-    """
-    return f"https://export.arxiv.org/{arx_id}.pdf"
-
-
-def lambda_handler(event, context=None):
-    print(type(event))
-    print(event)
+def lambda_handler(event: dict[str, str], context=None) -> dict:
     if not (url := event.get("url")):
         raise ValueError("Expected a URL")
-    parsed = urlparse(url)
-    exp_loc = "export.arxiv.org"
-    loc_check = parsed.netloc != exp_loc
-    pdf_suff = parsed.path.endswith(".pdf")
-    if not (loc_check and pdf_suff):
-        if parsed.netloc != "arxiv.org":
-            raise ValueError("Not an arXiv URL")
-        arx_id = id_from_arx_url(url)
-        url = arx_url_from_id(arx_id)
-    req = httpx.get(url)
+    pdf2up_kwargs = {k: event.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS}
+    output = {"source_url": url, **pdf2up_kwargs}
+    paper = ArxivPaper.from_url(url)
+    output.update({"arx_id": paper.arx_id, "pdf_url": paper.pdf_export_url})
+    logger.info(f"INITIALISED: {output}")
+    req = httpx.get(paper.pdf_export_url)
     req.raise_for_status()
-    out_path = Path() / f"{arx_id}.pdf"
-    out_path.write_bytes(req.content)
-    s3 = boto3.resource("s3")
-    key=str(out_path.resolve())
-    s3.upload_file(bucket="bucket-name", key=key)
-
+    logger.info(f"SUCCESSFULLY RETRIEVED URL")
+    with TemporaryDirectory() as d:
+        pdf_tmp_path = Path(d) / f"{paper.arx_id}.pdf"
+        pdf_tmp_path.write_bytes(req.content)
+        # Handle the PDF with pdf2up
+        png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
+        # Now handle S3 upload here
+        png_out_keys = [png_file.name for png_file in png_out_paths]
+        s3_urls = S3Urls.from_keys(png_out_keys)
+    output.update({"images": s3_urls})
+    if S3Config.TESTING:
+        logger.info(pformat(output, sort_dicts=False))
+    return output
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("event")
     parser.add_argument("ctx", nargs="?", default=None)
     args = parser.parse_args()
