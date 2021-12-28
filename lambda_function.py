@@ -51,7 +51,9 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("event")
     parser.add_argument("ctx", nargs="?", default=None)
+    parser.add_argument("--stage", nargs="?", default="dev")
     args = parser.parse_args()
     event = json.loads(args.event)
     context = json.loads(ctx) if (ctx := args.ctx) else ctx
+    S3Config.Stage = args.stage
     lambda_handler(event=event, context=context)

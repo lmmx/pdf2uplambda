@@ -7,7 +7,7 @@ Reproducible on replit but requires poppler (replit doesn't seem to support)
 Proof of concept:
 
 ```sh
-python lambda_function.py '{"url": "https://arxiv.org/abs/2111.00396"}'
+python lambda_function.py --stage=dev '{"url": "https://arxiv.org/abs/2111.00396"}
 ```
 ⇣
 ```
