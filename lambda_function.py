@@ -12,11 +12,11 @@ import httpx
 from pdf2up.conversion import pdf2png
 
 from arxiv_utils import ArxivPaper
-from console_log import logger
-from s3_utils import S3Config, S3Url, S3Urls
+from log_utils import logger
+from s3_utils import S3Config, S3UrlMappedPaths
 
-S3Config.STAGE = os.environ.get("STAGE", "dev")
-S3Config.TESTING = True
+S3Config.stage = os.environ.get("STAGE", "dev")
+S3Config.testing = True
 PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 
@@ -37,13 +37,10 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
         # Handle the PDF with pdf2up
         png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
         # Now handle S3 upload here
-        stage_subpath = ["dev"] if S3Config.STAGE == "dev" else []
-        path_base = Path(S3Config.dir_name, *stage_subpath)
-        png_keys = [f"{path_base / ('pdf2up_' + png.name)}" for png in png_out_paths]
-        s3_urls = S3Urls.from_keys(png_keys)
-    output.update({"images": s3_urls})
-    if S3Config.TESTING:
-        logger.info(pformat(output, sort_dicts=False))
+        s3_mapped_paths = S3UrlMappedPaths(paths=png_out_paths)
+    output.update({"images": s3_mapped_paths.urls})
+    s3_mapped_paths.upload()
+    logger.info(pformat(output, sort_dicts=False))
     return output
 
 
@@ -55,5 +52,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     event = json.loads(args.event)
     context = json.loads(ctx) if (ctx := args.ctx) else ctx
-    S3Config.Stage = args.stage
+    S3Config.stage = args.stage
     lambda_handler(event=event, context=context)

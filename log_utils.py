@@ -21,7 +21,7 @@ class Console:
     @property
     def log_format(self) -> logging.Formatter:
         header_str = " ".join(map("[%({})s]".format, self.header_names))
-        return logging.Formatter(fmt=header_str + "- %(message)s")
+        return logging.Formatter(fmt=header_str + " %(message)s")
 
 
 logger = Console().logger
