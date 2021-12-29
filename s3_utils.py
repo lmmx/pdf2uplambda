@@ -16,7 +16,7 @@ class S3Config:
     testing: bool = False
     bucket_name: str = "filestore.spin.systems"
     dir_name: str = "pdf2up"
-    region: str = "eu-west-1"
+    region: str = "eu-west-2"
     netloc: str = f"https://{bucket_name}.s3.{region}.amazonaws.com/"
     resource_config = Config(connect_timeout=5, retries={"max_attempts": 0})
     resource = boto3.resource("s3", config=resource_config)
