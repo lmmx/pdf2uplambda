@@ -15,7 +15,6 @@ from pdf2up.conversion import pdf2png
 from s3_utils import S3Config, S3UrlMappedPaths
 
 S3Config.stage = os.environ.get("STAGE", "dev")
-S3Config.testing = True
 PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 
@@ -45,6 +44,7 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
 
 # For local testing
 if __name__ == "__main__":
+    S3Config.testing = True
     parser = ArgumentParser()
     parser.add_argument("event")
     parser.add_argument("ctx", nargs="?", default=None)
