@@ -29,4 +29,4 @@ python lambda_function.py --stage=dev '{"url": "https://arxiv.org/abs/2111.00396
  'https://filestore.spin.systems.s3.eu-west-1.amazonaws.com/pdf2up/dev/hires_2111.00396_3.png']}
 ```
 
-- [AWS Cognito sign-in URL](https://spin-systems-user-pool.auth.eu-west-2.amazoncognito.com/login?client_id=af1ikj2ceed6npeujfqnralmb&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fqrx.spin.systems%pdf2up)
+- [AWS Cognito sign-in URL](https://spin-systems-user-pool.auth.eu-west-2.amazoncognito.com/login?client_id=af1ikj2ceed6npeujfqnralmb&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fqrx.spin.systems%2Fpdf2up)
