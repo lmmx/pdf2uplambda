@@ -5,3 +5,9 @@ package-lock.json
 *.pdf
 *.png
 *.swp
+
+.serverless
+
+# Configuration is confidential
+serverless.yml
+package.json

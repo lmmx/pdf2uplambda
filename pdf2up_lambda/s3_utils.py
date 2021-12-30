@@ -1,11 +1,10 @@
 from __future__ import annotations
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import boto3
 from botocore.client import Config
-
 from log_utils import logger
 
 __all__ = ["S3Config", "S3Url", "S3Urls", "S3UrlMappedPaths"]

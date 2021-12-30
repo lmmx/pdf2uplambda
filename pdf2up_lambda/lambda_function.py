@@ -9,14 +9,13 @@ from tempfile import TemporaryDirectory
 from urllib.parse import urlparse
 
 import httpx
-from pdf2up.conversion import pdf2png
-
 from arxiv_utils import ArxivPaper
 from log_utils import logger
+from pdf2up.conversion import pdf2png
 from s3_utils import S3Config, S3UrlMappedPaths
 
 S3Config.stage = os.environ.get("STAGE", "dev")
-S3Config.testing = True
+# S3Config.testing = True
 PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 
@@ -34,16 +33,17 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
     with TemporaryDirectory() as d:
         pdf_tmp_path = Path(d) / f"{paper.arx_id}.pdf"
         pdf_tmp_path.write_bytes(req.content)
-        # Handle the PDF with pdf2up
+        logger.info(f"NOW IMAGING THE PDF WITH PDF2UP")
         png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
-        # Now handle S3 upload here
+        logger.info(f"NOW UPLOADING THE PNG FILES TO S3")
         s3_mapped_paths = S3UrlMappedPaths(paths=png_out_paths)
-    output.update({"images": s3_mapped_paths.urls})
-    s3_mapped_paths.upload()
+        output.update({"images": s3_mapped_paths.urls})
+        s3_mapped_paths.upload()
     logger.info(pformat(output, sort_dicts=False))
     return output
 
 
+# For local testing
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("event")
