@@ -15,7 +15,7 @@ from pdf2up.conversion import pdf2png
 from s3_utils import S3Config, S3UrlMappedPaths
 
 S3Config.stage = os.environ.get("STAGE", "dev")
-# S3Config.testing = True
+S3Config.testing = True
 PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 
@@ -26,7 +26,7 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
     output = {"source_url": url, **pdf2up_kwargs}
     paper = ArxivPaper.from_url(url)
     output.update({"arx_id": paper.arx_id, "pdf_url": paper.pdf_export_url})
-    logger.info(f"INITIALISED: arX⠶{paper.arx_id}")
+    logger.info(f"INITIALISED: arX⠶{paper.arx_id} stage⠶{S3Config.stage}")
     req = httpx.get(paper.pdf_export_url)
     req.raise_for_status()
     logger.info(f"SUCCESSFULLY RETRIEVED URL")

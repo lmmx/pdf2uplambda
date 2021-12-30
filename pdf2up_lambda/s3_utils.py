@@ -23,9 +23,12 @@ class S3Config:
     identifier: str = "hires"
 
     @classmethod
+    def stage_subpath(cls) -> list[str]:
+        return [cls.stage] if cls.stage == "dev" else []
+
+    @classmethod
     def key_base(cls) -> Path:
-        stage_subpath = [cls.stage] if cls.stage == "dev" else []
-        return Path(cls.dir_name, *stage_subpath)
+        return Path(cls.dir_name, *cls.stage_subpath())
 
     @classmethod
     def filepath2key(cls, file_path: Path, file_prefix: str = f"{identifier}_") -> str:
