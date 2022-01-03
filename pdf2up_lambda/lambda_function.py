@@ -20,10 +20,12 @@ PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 def lambda_handler(event: dict[str, str], context=None) -> dict:
     try:
-        if not (url := event.get("url")):
-            logger.info(f"{event}")
+        logger.info("PARSING EVENT")
+        event_body = json.loads(event.get("body", "{}"))
+        if not (url := event_body.get("url")):
             raise ValueError("Expected a URL")
-        pdf2up_kwargs = {k: event.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS}
+        logger.info("CHECKING FOR PDF2UP CONFIG AND/OR SETTING DEFAULTS")
+        pdf2up_kwargs = {k: event_body.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS}
         output = {"source_url": url, **pdf2up_kwargs}
         paper = ArxivPaper.from_url(url)
         output.update({"arx_id": paper.arx_id, "pdf_url": paper.pdf_export_url})
@@ -40,10 +42,11 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
             s3_mapped_paths = S3UrlMappedPaths(paths=png_out_paths)
             output.update({"images": s3_mapped_paths.urls})
             s3_mapped_paths.upload()
-        logger.info(pformat(output, sort_dicts=False))
     except Exception as e:
+        logger.info(event)
         output = {"message": repr(e)}
     finally:
+        logger.info(pformat(output, sort_dicts=False))
         response = {
             "statusCode": 200,
             "headers": {

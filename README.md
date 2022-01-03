@@ -5,7 +5,7 @@ An AWS Lambda function for pdf2up (2021)
 Proof of concept:
 
 ```sh
-python lambda_function.py --stage=dev '{"url": "https://arxiv.org/abs/2111.00396"}'
+python lambda_function.py --stage=dev "{'body': '{\"url\": \"https://arxiv.org/abs/2111.00396\"}'}"
 ```
 ⇣
 ```
