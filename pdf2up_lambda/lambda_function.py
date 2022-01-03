@@ -21,6 +21,8 @@ PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 def lambda_handler(event: dict[str, str], context=None) -> dict:
     try:
         logger.info("PARSING EVENT")
+        if event.get("body") == "[object Object]":
+            raise ValueError(f"The event body is {event['body']}")
         event_body = json.loads(event.get("body", "{}"))
         if not (url := event_body.get("url")):
             raise ValueError("Expected a URL")
@@ -50,7 +52,7 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
         response = {
             "statusCode": 200,
             "headers": {
-                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Headers": "*,authorization",
                 "Access-Control-Allow-Origin": "https://qrx.spin.systems",
                 "Access-Control-Allow-Methods": "OPTIONS,POST",
             },
