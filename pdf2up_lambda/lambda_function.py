@@ -19,27 +19,41 @@ PDF2UP_DEFAULTS = {"box": None, "all_pages": False, "skip": None}
 
 
 def lambda_handler(event: dict[str, str], context=None) -> dict:
-    if not (url := event.get("url")):
-        raise ValueError("Expected a URL")
-    pdf2up_kwargs = {k: event.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS}
-    output = {"source_url": url, **pdf2up_kwargs}
-    paper = ArxivPaper.from_url(url)
-    output.update({"arx_id": paper.arx_id, "pdf_url": paper.pdf_export_url})
-    logger.info(f"INITIALISED: arX⠶{paper.arx_id} stage⠶{S3Config.stage}")
-    req = httpx.get(paper.pdf_export_url)
-    req.raise_for_status()
-    logger.info(f"SUCCESSFULLY RETRIEVED URL")
-    with TemporaryDirectory() as d:
-        pdf_tmp_path = Path(d) / f"{paper.arx_id}.pdf"
-        pdf_tmp_path.write_bytes(req.content)
-        logger.info(f"NOW IMAGING THE PDF WITH PDF2UP")
-        png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
-        logger.info(f"NOW UPLOADING THE PNG FILES TO S3")
-        s3_mapped_paths = S3UrlMappedPaths(paths=png_out_paths)
-        output.update({"images": s3_mapped_paths.urls})
-        s3_mapped_paths.upload()
-    logger.info(pformat(output, sort_dicts=False))
-    return output
+    try:
+        if not (url := event.get("url")):
+            logger.info(f"{event}")
+            raise ValueError("Expected a URL")
+        pdf2up_kwargs = {k: event.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS}
+        output = {"source_url": url, **pdf2up_kwargs}
+        paper = ArxivPaper.from_url(url)
+        output.update({"arx_id": paper.arx_id, "pdf_url": paper.pdf_export_url})
+        logger.info(f"INITIALISED: arX⠶{paper.arx_id} stage⠶{S3Config.stage}")
+        req = httpx.get(paper.pdf_export_url)
+        req.raise_for_status()
+        logger.info(f"SUCCESSFULLY RETRIEVED URL")
+        with TemporaryDirectory() as d:
+            pdf_tmp_path = Path(d) / f"{paper.arx_id}.pdf"
+            pdf_tmp_path.write_bytes(req.content)
+            logger.info(f"NOW IMAGING THE PDF WITH PDF2UP")
+            png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
+            logger.info(f"NOW UPLOADING THE PNG FILES TO S3")
+            s3_mapped_paths = S3UrlMappedPaths(paths=png_out_paths)
+            output.update({"images": s3_mapped_paths.urls})
+            s3_mapped_paths.upload()
+        logger.info(pformat(output, sort_dicts=False))
+    except Exception as e:
+        output = {"message": repr(e)}
+    finally:
+        response = {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Origin": "https://qrx.spin.systems",
+                "Access-Control-Allow-Methods": "OPTIONS,POST",
+            },
+            "body": json.dumps(output),
+        }
+    return response
 
 
 # For local testing
