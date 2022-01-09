@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 __all__ = ["batch_multiprocess"]
 
+
 def batch_multiprocess(function_list, n_cores=mp.cpu_count(), show_progress=True):
     """
     Run a list of functions on `n_cores` (default: all CPU cores),
@@ -21,6 +22,7 @@ def batch_multiprocess(function_list, n_cores=mp.cpu_count(), show_progress=True
             p.start()
         for p in procs:
             p.join()
+
 
 def sequential_process(function_list, show_progress=True):
     """

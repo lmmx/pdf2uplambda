@@ -48,7 +48,7 @@ class ArxivPaper:
     @property
     def pdf_export_url(self) -> str:
         """
-        Prepare a URL at the proper export subdomain of arxiv.org so that PDF requests don't
-        return a 403 error when pulled by a non-browser viewer.
+        Prepare a URL at the proper export subdomain of arxiv.org so that PDF requests
+        don't return a 403 error when pulled by a non-browser viewer.
         """
         return "/".join([self.url_base(export=True), "pdf", f"{self.arx_id}.pdf"])

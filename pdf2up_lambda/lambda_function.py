@@ -6,7 +6,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 from pprint import pformat
 from tempfile import TemporaryDirectory
-from urllib.parse import urlparse
 
 import httpx
 from arxiv_utils import ArxivPaper
@@ -27,20 +26,22 @@ def lambda_handler(event: dict[str, str], context=None) -> dict:
         if not (url := event_body.get("url")):
             raise ValueError("Expected a URL")
         logger.info("CHECKING FOR PDF2UP CONFIG AND/OR SETTING DEFAULTS")
-        pdf2up_kwargs = {k: event_body.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS}
+        pdf2up_kwargs = {
+            k: event_body.get(k, PDF2UP_DEFAULTS[k]) for k in PDF2UP_DEFAULTS
+        }
         output = {"source_url": url, **pdf2up_kwargs}
         paper = ArxivPaper.from_url(url)
         output.update({"arx_id": paper.arx_id, "pdf_url": paper.pdf_export_url})
         logger.info(f"INITIALISED: arX⠶{paper.arx_id} stage⠶{S3Config.stage}")
         req = httpx.get(paper.pdf_export_url)
         req.raise_for_status()
-        logger.info(f"SUCCESSFULLY RETRIEVED URL")
+        logger.info("SUCCESSFULLY RETRIEVED URL")
         with TemporaryDirectory() as d:
             pdf_tmp_path = Path(d) / f"{paper.arx_id}.pdf"
             pdf_tmp_path.write_bytes(req.content)
-            logger.info(f"NOW IMAGING THE PDF WITH PDF2UP")
+            logger.info("NOW IMAGING THE PDF WITH PDF2UP")
             png_out_paths = pdf2png(input_file=str(pdf_tmp_path), **pdf2up_kwargs)
-            logger.info(f"NOW UPLOADING THE PNG FILES TO S3")
+            logger.info("NOW UPLOADING THE PNG FILES TO S3")
             s3_mapped_paths = S3UrlMappedPaths(paths=png_out_paths)
             output.update({"images": s3_mapped_paths.urls})
             s3_mapped_paths.upload()
