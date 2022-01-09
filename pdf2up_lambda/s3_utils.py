@@ -6,6 +6,7 @@ from pathlib import Path
 import boto3
 from botocore.client import Config
 from log_utils import logger
+from batch_multiprocessing import batch_multiprocess, sequential_process
 
 __all__ = ["S3Config", "S3Url", "S3Urls", "S3UrlMappedPaths"]
 
@@ -73,9 +74,14 @@ class S3Urls(S3Config, list):
         urls = list(map(S3Url.from_key, keys))
         return cls(urls)
 
-    def upload(self, filepaths: list[str]):
+    def upload(self, filepaths: list[str], parallel=True):
+        upload_funcs = []
         for url, filepath in zip(self, filepaths):
-            url.upload(filepath)
+            upload_func = partial(url.upload, filepath)
+            upload_funcs.append(upload_func)
+        (batch_multiprocess if parallel else sequential_process)(
+            function_list=upload_funcs, show_progress=True
+        )
 
 
 @dataclass
